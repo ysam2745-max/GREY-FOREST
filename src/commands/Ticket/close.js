@@ -6,15 +6,16 @@ import { replyUserError, ErrorTypes } from '../../utils/errorHandler.js';
 import { InteractionHelper } from '../../utils/interactionHelper.js';
 import { getTicketPermissionContext } from '../../utils/ticket/ticketPermissions.js';
 import { closeTicket } from '../../services/ticket.js';
+
 export default {
     data: new SlashCommandBuilder()
-        .setName("close")
-        .setDescription("Closes the current ticket.")
+        .setName("close") // اسم الأمر الرئيسي يفضل تركه بالإنجليزية لتسهيل كتابته السريعة بالـ /
+        .setDescription("إغلاق التذكرة الحالية.")
         .setDMPermission(false)
         .addStringOption((option) =>
             option
-                .setName("reason")
-                .setDescription("The reason for closing the ticket.")
+                .setName("السبب") // تعريب اسم خيار سبب الإغلاق
+                .setDescription("سبب إغلاق التذكرة (اختياري).")
                 .setRequired(false),
         ),
 
@@ -26,24 +27,25 @@ export default {
 
         const permissionContext = await getTicketPermissionContext({ client, interaction });
         if (!permissionContext.ticketData) {
-            return await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: 'This command can only be used in a valid ticket channel.' });
+            return await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: 'يمكنك استخدام هذا الأمر داخل رومات التذاكر الصالحة فقط.' });
         }
 
         if (!permissionContext.canCloseTicket) {
-            return await replyUserError(interaction, { type: ErrorTypes.PERMISSION, message: 'You need the `Manage Channels` permission, the configured `Ticket Staff Role`, or be the ticket creator to close this ticket.' });
+            return await replyUserError(interaction, { type: ErrorTypes.PERMISSION, message: 'تحتاج إلى صلاحية `إدارة القنوات`، أو رتبة `الدعم الفني` المحددة، أو أن تكون صاحب التذكرة لإغلاقها.' });
         }
 
+        // جلب سبب الإغلاق بالاسم العربي الجديد، أو وضع نص افتراضي معرّب
         const reason =
-            interaction.options?.getString("reason") ||
-            "Closed via command without a specific reason.";
+            interaction.options?.getString("السبب") ||
+            "تم إغلاق التذكرة عبر الأمر بدون تحديد سبب معین.";
 
         await closeTicket(interaction.channel, interaction.user, reason);
 
         await InteractionHelper.safeEditReply(interaction, {
             embeds: [
                 successEmbed(
-                    "Ticket Closed!",
-                    "This ticket has been closed successfully.",
+                    "تم إغلاق التذكرة!",
+                    "لقد تم إغلاق هذه التذكرة بنجاح.",
                 ),
             ],
         });
