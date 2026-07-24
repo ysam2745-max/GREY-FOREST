@@ -6,10 +6,11 @@ import { replyUserError, ErrorTypes } from '../../utils/errorHandler.js';
 import { InteractionHelper } from '../../utils/interactionHelper.js';
 import { getTicketPermissionContext } from '../../utils/ticket/ticketPermissions.js';
 import { claimTicket } from '../../services/ticket.js';
+
 export default {
     data: new SlashCommandBuilder()
-        .setName("claim")
-        .setDescription("Claims an open ticket, assigning it to you.")
+        .setName("claim") // اسم الأمر الرئيسي يفضل تركه بالإنجليزية لتسهيل كتابته السريعة بالـ /
+        .setDescription("استلام التذكرة المفتوحة وتعيينها لك.")
         .setDMPermission(false),
 
     async execute(interaction, guildConfig, client) {
@@ -20,11 +21,11 @@ export default {
 
         const permissionContext = await getTicketPermissionContext({ client, interaction });
         if (!permissionContext.ticketData) {
-            return await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: 'This command can only be used in a valid ticket channel.' });
+            return await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: 'يمكنك استخدام هذا الأمر داخل رومات التذاكر الصالحة فقط.' });
         }
 
         if (!permissionContext.canManageTicket) {
-            return await replyUserError(interaction, { type: ErrorTypes.PERMISSION, message: 'You need the `Manage Channels` permission or the configured `Ticket Staff Role` to claim tickets.' });
+            return await replyUserError(interaction, { type: ErrorTypes.PERMISSION, message: 'تحتاج إلى صلاحية `إدارة القنوات` أو رتبة `الدعم الفني` المحددة لاستلام التذاكر.' });
         }
 
         await claimTicket(interaction.channel, interaction.user);
@@ -32,8 +33,8 @@ export default {
         await InteractionHelper.safeEditReply(interaction, {
             embeds: [
                 successEmbed(
-                    "Ticket Claimed!",
-                    "You have successfully claimed this ticket.",
+                    "تم استلام التذكرة!",
+                    "لقد قمت باستلام هذه التذكرة بنجاح وتولّي مسؤوليتها.",
                 ),
             ],
         });
